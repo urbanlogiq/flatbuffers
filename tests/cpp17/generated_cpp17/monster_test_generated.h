@@ -1411,11 +1411,11 @@ struct Monster FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   void *mutable_any_ambiguous() {
     return GetPointer<void *>(VT_ANY_AMBIGUOUS);
   }
-  const flatbuffers::Vector<uint8_t> *vector_of_enums() const {
-    return GetPointer<const flatbuffers::Vector<uint8_t> *>(VT_VECTOR_OF_ENUMS);
+  const flatbuffers::Vector<MyGame::Example::Color> *vector_of_enums() const {
+    return GetPointer<const flatbuffers::Vector<MyGame::Example::Color> *>(VT_VECTOR_OF_ENUMS);
   }
-  flatbuffers::Vector<uint8_t> *mutable_vector_of_enums() {
-    return GetPointer<flatbuffers::Vector<uint8_t> *>(VT_VECTOR_OF_ENUMS);
+  flatbuffers::Vector<MyGame::Example::Color> *mutable_vector_of_enums() {
+    return GetPointer<flatbuffers::Vector<MyGame::Example::Color> *>(VT_VECTOR_OF_ENUMS);
   }
   MyGame::Example::Race signed_enum() const {
     return static_cast<MyGame::Example::Race>(GetField<int8_t>(VT_SIGNED_ENUM, -1));
@@ -1676,7 +1676,7 @@ struct MonsterBuilder {
   void add_any_ambiguous(flatbuffers::Offset<void> any_ambiguous) {
     fbb_.AddOffset(Monster::VT_ANY_AMBIGUOUS, any_ambiguous);
   }
-  void add_vector_of_enums(flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums) {
+  void add_vector_of_enums(flatbuffers::Offset<flatbuffers::Vector<MyGame::Example::Color>> vector_of_enums) {
     fbb_.AddOffset(Monster::VT_VECTOR_OF_ENUMS, vector_of_enums);
   }
   void add_signed_enum(MyGame::Example::Race signed_enum) {
@@ -1743,7 +1743,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(
     flatbuffers::Offset<void> any_unique = 0,
     MyGame::Example::AnyAmbiguousAliases any_ambiguous_type = MyGame::Example::AnyAmbiguousAliases::NONE,
     flatbuffers::Offset<void> any_ambiguous = 0,
-    flatbuffers::Offset<flatbuffers::Vector<uint8_t>> vector_of_enums = 0,
+    flatbuffers::Offset<flatbuffers::Vector<MyGame::Example::Color>> vector_of_enums = 0,
     MyGame::Example::Race signed_enum = MyGame::Example::Race::None) {
   MonsterBuilder builder_(_fbb);
   builder_.add_non_owning_reference(non_owning_reference);
@@ -1850,7 +1850,7 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
     flatbuffers::Offset<void> any_unique = 0,
     MyGame::Example::AnyAmbiguousAliases any_ambiguous_type = MyGame::Example::AnyAmbiguousAliases::NONE,
     flatbuffers::Offset<void> any_ambiguous = 0,
-    const std::vector<uint8_t> *vector_of_enums = nullptr,
+    const std::vector<MyGame::Example::Color> *vector_of_enums = nullptr,
     MyGame::Example::Race signed_enum = MyGame::Example::Race::None) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   auto inventory__ = inventory ? _fbb.CreateVector<uint8_t>(*inventory) : 0;
@@ -1870,7 +1870,7 @@ inline flatbuffers::Offset<Monster> CreateMonsterDirect(
   auto vector_of_strong_referrables__ = vector_of_strong_referrables ? _fbb.CreateVectorOfSortedTables<MyGame::Example::Referrable>(vector_of_strong_referrables) : 0;
   auto vector_of_co_owning_references__ = vector_of_co_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_co_owning_references) : 0;
   auto vector_of_non_owning_references__ = vector_of_non_owning_references ? _fbb.CreateVector<uint64_t>(*vector_of_non_owning_references) : 0;
-  auto vector_of_enums__ = vector_of_enums ? _fbb.CreateVector<uint8_t>(*vector_of_enums) : 0;
+  auto vector_of_enums__ = vector_of_enums ? _fbb.CreateVector<MyGame::Example::Color>(*vector_of_enums) : 0;
   return MyGame::Example::CreateMonster(
       _fbb,
       pos,
@@ -2193,9 +2193,9 @@ flatbuffers::Offset<TypeAliases> CreateTypeAliases(flatbuffers::FlatBufferBuilde
 }  // namespace Example
 
 inline InParentNamespaceT *InParentNamespace::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new InParentNamespaceT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::InParentNamespaceT> _o = std::unique_ptr<MyGame::InParentNamespaceT>(new InParentNamespaceT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void InParentNamespace::UnPackTo(InParentNamespaceT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2218,9 +2218,9 @@ inline flatbuffers::Offset<InParentNamespace> CreateInParentNamespace(flatbuffer
 namespace Example2 {
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example2::MonsterT> _o = std::unique_ptr<MyGame::Example2::MonsterT>(new MonsterT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2245,9 +2245,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 namespace Example {
 
 inline TestSimpleTableWithEnumT *TestSimpleTableWithEnum::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TestSimpleTableWithEnumT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::TestSimpleTableWithEnumT> _o = std::unique_ptr<MyGame::Example::TestSimpleTableWithEnumT>(new TestSimpleTableWithEnumT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TestSimpleTableWithEnum::UnPackTo(TestSimpleTableWithEnumT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2271,9 +2271,9 @@ inline flatbuffers::Offset<TestSimpleTableWithEnum> CreateTestSimpleTableWithEnu
 }
 
 inline StatT *Stat::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new StatT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::StatT> _o = std::unique_ptr<MyGame::Example::StatT>(new StatT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Stat::UnPackTo(StatT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2303,9 +2303,9 @@ inline flatbuffers::Offset<Stat> CreateStat(flatbuffers::FlatBufferBuilder &_fbb
 }
 
 inline ReferrableT *Referrable::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new ReferrableT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::ReferrableT> _o = std::unique_ptr<MyGame::Example::ReferrableT>(new ReferrableT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Referrable::UnPackTo(ReferrableT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2329,9 +2329,9 @@ inline flatbuffers::Offset<Referrable> CreateReferrable(flatbuffers::FlatBufferB
 }
 
 inline MonsterT *Monster::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::MonsterT> _o = std::unique_ptr<MyGame::Example::MonsterT>(new MonsterT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void Monster::UnPackTo(MonsterT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -2448,7 +2448,7 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
   auto _any_unique = _o->any_unique.Pack(_fbb);
   auto _any_ambiguous_type = _o->any_ambiguous.type;
   auto _any_ambiguous = _o->any_ambiguous.Pack(_fbb);
-  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVectorScalarCast<uint8_t>(flatbuffers::data(_o->vector_of_enums), _o->vector_of_enums.size()) : 0;
+  auto _vector_of_enums = _o->vector_of_enums.size() ? _fbb.CreateVector(_o->vector_of_enums) : 0;
   auto _signed_enum = _o->signed_enum;
   return MyGame::Example::CreateMonster(
       _fbb,
@@ -2503,9 +2503,9 @@ inline flatbuffers::Offset<Monster> CreateMonster(flatbuffers::FlatBufferBuilder
 }
 
 inline TypeAliasesT *TypeAliases::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new TypeAliasesT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  std::unique_ptr<MyGame::Example::TypeAliasesT> _o = std::unique_ptr<MyGame::Example::TypeAliasesT>(new TypeAliasesT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void TypeAliases::UnPackTo(TypeAliasesT *_o, const flatbuffers::resolver_function_t *_resolver) const {

@@ -5,42 +5,84 @@ import FlatBuffers
 public enum MyGame {
 public enum Example {
 
+/// Composite components of Monster color.
 public enum Color: UInt8, Enum { 
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case red = 1, green = 2, blue = 8
+	case red = 1
+	/// \brief color Green
+	/// Green is bit_flag with value (1u << 1)
+	case green = 2
+	/// \brief color Blue (1u << 3)
+	case blue = 8
+
+
+	public static var max: Color { return .blue }
+	public static var min: Color { return .red }
 }
 
 public enum Race: Int8, Enum { 
 	public typealias T = Int8
 	public static var byteSize: Int { return MemoryLayout<Int8>.size }
 	public var value: Int8 { return self.rawValue }
-	case none = -1, human = 0, dwarf = 1, elf = 2
+	case none = -1
+	case human = 0
+	case dwarf = 1
+	case elf = 2
+
+
+	public static var max: Race { return .elf }
+	public static var min: Race { return .none }
 }
 
 public enum Any_: UInt8, Enum { 
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case none = 0, monster = 1, testsimpletablewithenum = 2, mygame_example2_monster = 3
+	case none = 0
+	case monster = 1
+	case testsimpletablewithenum = 2
+	case mygame_example2_monster = 3
+
+
+	public static var max: Any_ { return .mygame_example2_monster }
+	public static var min: Any_ { return .none }
 }
 
 public enum AnyUniqueAliases: UInt8, Enum { 
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case none = 0, m = 1, ts = 2, m2 = 3
+	case none = 0
+	case m = 1
+	case ts = 2
+	case m2 = 3
+
+
+	public static var max: AnyUniqueAliases { return .m2 }
+	public static var min: AnyUniqueAliases { return .none }
 }
 
 public enum AnyAmbiguousAliases: UInt8, Enum { 
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case none = 0, m1 = 1, m2 = 2, m3 = 3
+	case none = 0
+	case m1 = 1
+	case m2 = 2
+	case m3 = 3
+
+
+	public static var max: AnyAmbiguousAliases { return .m3 }
+	public static var min: AnyAmbiguousAliases { return .none }
 }
 
 public struct Test: Readable {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Struct
 	public static var size = 4
 	public static var alignment = 2	
@@ -53,6 +95,10 @@ public struct Test: Readable {
 }
 
 public struct Vec3: Readable {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Struct
 	public static var size = 32
 	public static var alignment = 8	
@@ -71,6 +117,10 @@ public struct Vec3: Readable {
 }
 
 public struct Ability: Readable {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Struct
 	public static var size = 8
 	public static var alignment = 4	
@@ -117,6 +167,10 @@ public static func createAbility(id: UInt32, distance: UInt32) -> UnsafeMutableR
 
 
 public struct InParentNamespace: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
 	public static func getRootAsInParentNamespace(bb: ByteBuffer) -> InParentNamespace { return InParentNamespace(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -127,14 +181,18 @@ public struct InParentNamespace: FlatBufferObject {
 	public static func startInParentNamespace(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 0) }
 	public static func endInParentNamespace(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
 	public static func createInParentNamespace(_ fbb: FlatBufferBuilder) -> Offset<UOffset> {
-		let start = InParentNamespace.startInParentNamespace(fbb)
-		return InParentNamespace.endInParentNamespace(fbb, start: start)
+		let __start = InParentNamespace.startInParentNamespace(fbb)
+		return InParentNamespace.endInParentNamespace(fbb, start: __start)
 	}
 }
 
 public enum Example2 {
 
 public struct Monster: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
 	public static func getRootAsMonster(bb: ByteBuffer) -> Monster { return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -145,8 +203,8 @@ public struct Monster: FlatBufferObject {
 	public static func startMonster(_ fbb: FlatBufferBuilder) -> UOffset { fbb.startTable(with: 0) }
 	public static func endMonster(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
 	public static func createMonster(_ fbb: FlatBufferBuilder) -> Offset<UOffset> {
-		let start = Monster.startMonster(fbb)
-		return Monster.endMonster(fbb, start: start)
+		let __start = Monster.startMonster(fbb)
+		return Monster.endMonster(fbb, start: __start)
 	}
 }
 
@@ -159,6 +217,10 @@ public struct Monster: FlatBufferObject {
 extension MyGame.Example {
 
 public struct TestSimpleTableWithEnum: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
 	public static func getRootAsTestSimpleTableWithEnum(bb: ByteBuffer) -> TestSimpleTableWithEnum { return TestSimpleTableWithEnum(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -173,13 +235,17 @@ public struct TestSimpleTableWithEnum: FlatBufferObject {
 	public static func endTestSimpleTableWithEnum(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
 	public static func createTestSimpleTableWithEnum(_ fbb: FlatBufferBuilder,
 		color: MyGame.Example.Color = .green) -> Offset<UOffset> {
-		let start = TestSimpleTableWithEnum.startTestSimpleTableWithEnum(fbb)
+		let __start = TestSimpleTableWithEnum.startTestSimpleTableWithEnum(fbb)
 		TestSimpleTableWithEnum.add(color: color, fbb)
-		return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(fbb, start: start)
+		return TestSimpleTableWithEnum.endTestSimpleTableWithEnum(fbb, start: __start)
 	}
 }
 
 public struct Stat: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
 	public static func getRootAsStat(bb: ByteBuffer) -> Stat { return Stat(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -202,15 +268,19 @@ public struct Stat: FlatBufferObject {
 		offsetOfId id: Offset<String> = Offset(),
 		val: Int64 = 0,
 		count: UInt16 = 0) -> Offset<UOffset> {
-		let start = Stat.startStat(fbb)
+		let __start = Stat.startStat(fbb)
 		Stat.add(id: id, fbb)
 		Stat.add(val: val, fbb)
 		Stat.add(count: count, fbb)
-		return Stat.endStat(fbb, start: start)
+		return Stat.endStat(fbb, start: __start)
 	}
 }
 
 public struct Referrable: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
 	public static func getRootAsReferrable(bb: ByteBuffer) -> Referrable { return Referrable(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -225,9 +295,9 @@ public struct Referrable: FlatBufferObject {
 	public static func endReferrable(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
 	public static func createReferrable(_ fbb: FlatBufferBuilder,
 		id: UInt64 = 0) -> Offset<UOffset> {
-		let start = Referrable.startReferrable(fbb)
+		let __start = Referrable.startReferrable(fbb)
 		Referrable.add(id: id, fbb)
-		return Referrable.endReferrable(fbb, start: start)
+		return Referrable.endReferrable(fbb, start: __start)
 	}
 	public static func sortVectorOfReferrable(offsets:[Offset<UOffset>], _ fbb: FlatBufferBuilder) -> Offset<UOffset> {
 		var off = offsets
@@ -255,7 +325,12 @@ public struct Referrable: FlatBufferObject {
 	}
 }
 
+/// an example documentation comment: monster object
 public struct Monster: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
 	public static func getRootAsMonster(bb: ByteBuffer) -> Monster { return Monster(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -282,6 +357,8 @@ public struct Monster: FlatBufferObject {
 	public func test4(at index: Int32) -> MyGame.Example.Test? { let o = _accessor.offset(22); return o == 0 ? nil : MyGame.Example.Test(_accessor.bb, o: _accessor.vector(at: o) + index * 4) }
 	public var testarrayofstringCount: Int32 { let o = _accessor.offset(24); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func testarrayofstring(at index: Int32) -> String? { let o = _accessor.offset(24); return o == 0 ? nil : _accessor.directString(at: _accessor.vector(at: o) + index * 4) }
+	/// an example documentation comment: this will end up in the generated code
+	/// multiline too
 	public var testarrayoftablesCount: Int32 { let o = _accessor.offset(26); return o == 0 ? 0 : _accessor.vector(count: o) }
 	public func testarrayoftables(at index: Int32) -> MyGame.Example.Monster? { let o = _accessor.offset(26); return o == 0 ? nil : MyGame.Example.Monster(_accessor.bb, o: _accessor.indirect(_accessor.vector(at: o) + index * 4)) }
 	public func testarrayoftablesBy(key: String) -> MyGame.Example.Monster? { let o = _accessor.offset(26); return o == 0 ? nil : MyGame.Example.Monster.lookupByKey(vector: _accessor.vector(at: o), key: key, fbb: _accessor.bb) }
@@ -469,7 +546,7 @@ public struct Monster: FlatBufferObject {
 		offsetOfAnyAmbiguous anyAmbiguous: Offset<UOffset> = Offset(),
 		vectorOfVectorOfEnums vectorOfEnums: Offset<UOffset> = Offset(),
 		signedEnum: MyGame.Example.Race = .none) -> Offset<UOffset> {
-		let start = Monster.startMonster(fbb)
+		let __start = Monster.startMonster(fbb)
 		Monster.add(pos: pos, fbb)
 		Monster.add(mana: mana, fbb)
 		Monster.add(hp: hp, fbb)
@@ -518,7 +595,7 @@ public struct Monster: FlatBufferObject {
 		Monster.add(anyAmbiguous: anyAmbiguous, fbb)
 		Monster.addVectorOf(vectorOfEnums: vectorOfEnums, fbb)
 		Monster.add(signedEnum: signedEnum, fbb)
-		return Monster.endMonster(fbb, start: start)
+		return Monster.endMonster(fbb, start: __start)
 	}
 	public static func sortVectorOfMonster(offsets:[Offset<UOffset>], _ fbb: FlatBufferBuilder) -> Offset<UOffset> {
 		var off = offsets
@@ -548,6 +625,10 @@ public struct Monster: FlatBufferObject {
 }
 
 public struct TypeAliases: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MONS", addPrefix: prefix) }
 	public static func getRootAsTypeAliases(bb: ByteBuffer) -> TypeAliases { return TypeAliases(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -610,7 +691,7 @@ public struct TypeAliases: FlatBufferObject {
 		f64: Double = 0.0,
 		vectorOfV8 v8: Offset<UOffset> = Offset(),
 		vectorOfVf64 vf64: Offset<UOffset> = Offset()) -> Offset<UOffset> {
-		let start = TypeAliases.startTypeAliases(fbb)
+		let __start = TypeAliases.startTypeAliases(fbb)
 		TypeAliases.add(i8: i8, fbb)
 		TypeAliases.add(u8: u8, fbb)
 		TypeAliases.add(i16: i16, fbb)
@@ -623,7 +704,7 @@ public struct TypeAliases: FlatBufferObject {
 		TypeAliases.add(f64: f64, fbb)
 		TypeAliases.addVectorOf(v8: v8, fbb)
 		TypeAliases.addVectorOf(vf64: vf64, fbb)
-		return TypeAliases.endTypeAliases(fbb, start: start)
+		return TypeAliases.endTypeAliases(fbb, start: __start)
 	}
 }
 

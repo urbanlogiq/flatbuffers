@@ -6,10 +6,24 @@ public enum Character: UInt8, Enum {
 	public typealias T = UInt8
 	public static var byteSize: Int { return MemoryLayout<UInt8>.size }
 	public var value: UInt8 { return self.rawValue }
-	case none = 0, mulan = 1, rapunzel = 2, belle = 3, bookfan = 4, other = 5, unused = 6
+	case none = 0
+	case mulan = 1
+	case rapunzel = 2
+	case belle = 3
+	case bookfan = 4
+	case other = 5
+	case unused = 6
+
+
+	public static var max: Character { return .unused }
+	public static var min: Character { return .none }
 }
 
 public struct Rapunzel: Readable {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Struct
 	public static var size = 4
 	public static var alignment = 4	
@@ -20,6 +34,10 @@ public struct Rapunzel: Readable {
 }
 
 public struct BookReader: Readable {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Struct
 	public static var size = 4
 	public static var alignment = 4	
@@ -44,6 +62,10 @@ public func createBookReader(booksRead: Int32) -> UnsafeMutableRawPointer {
 }
 
 public struct Attacker: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
 	public static func getRootAsAttacker(bb: ByteBuffer) -> Attacker { return Attacker(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -58,13 +80,17 @@ public struct Attacker: FlatBufferObject {
 	public static func endAttacker(_ fbb: FlatBufferBuilder, start: UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: fbb.endTable(at: start)); return end }
 	public static func createAttacker(_ fbb: FlatBufferBuilder,
 		swordAttackDamage: Int32 = 0) -> Offset<UOffset> {
-		let start = Attacker.startAttacker(fbb)
+		let __start = Attacker.startAttacker(fbb)
 		Attacker.add(swordAttackDamage: swordAttackDamage, fbb)
-		return Attacker.endAttacker(fbb, start: start)
+		return Attacker.endAttacker(fbb, start: __start)
 	}
 }
 
 public struct Movie: FlatBufferObject {
+
+	static func validateVersion() { FlatBuffersVersion_1_11_1() }
+	public var __buffer: ByteBuffer! { return _accessor.bb }
+
 	private var _accessor: Table
 	public static func finish(_ fbb: FlatBufferBuilder, end: Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, fileId: "MOVI", addPrefix: prefix) }
 	public static func getRootAsMovie(bb: ByteBuffer) -> Movie { return Movie(Table(bb: bb, position: Int32(bb.read(def: UOffset.self, position: bb.reader)) + Int32(bb.reader))) }
@@ -89,12 +115,12 @@ public struct Movie: FlatBufferObject {
 		offsetOfMainCharacter mainCharacter: Offset<UOffset> = Offset(),
 		vectorOfCharactersType charactersType: Offset<UOffset> = Offset(),
 		vectorOfCharacters characters: Offset<UOffset> = Offset()) -> Offset<UOffset> {
-		let start = Movie.startMovie(fbb)
+		let __start = Movie.startMovie(fbb)
 		Movie.add(mainCharacterType: mainCharacterType, fbb)
 		Movie.add(mainCharacter: mainCharacter, fbb)
 		Movie.addVectorOf(charactersType: charactersType, fbb)
 		Movie.addVectorOf(characters: characters, fbb)
-		return Movie.endMovie(fbb, start: start)
+		return Movie.endMovie(fbb, start: __start)
 	}
 }
 

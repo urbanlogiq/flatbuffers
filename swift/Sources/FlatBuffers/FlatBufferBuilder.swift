@@ -50,6 +50,12 @@ public final class FlatBufferBuilder {
     /// Returns the buffer
     public var buffer: ByteBuffer { return _bb }
     
+    /// Returns A sized Buffer from the readable bytes
+    public var sizedBuffer: ByteBuffer {
+        assert(finished, "Data shouldn't be called before finish()")
+        return ByteBuffer(memory: _bb.memory.advanced(by: _bb.reader), count: _bb.reader)
+    }
+    
     // MARK: - Init
     
     /// initialize the buffer with a size
@@ -77,11 +83,8 @@ public final class FlatBufferBuilder {
     public func clearOffsets() {
         _vtable = []
     }
-}
-
-// MARK: - Create Tables
-
-extension FlatBufferBuilder {
+    
+    // MARK: - Create Tables
     
     /// Checks if the required fields were serialized into the buffer
     /// - Parameters:
@@ -219,7 +222,7 @@ extension FlatBufferBuilder {
     ///   - bufSize: Current size of the buffer + the offset of the object to be written
     ///   - elementSize: Element size
     fileprivate func padding(bufSize: UInt32, elementSize: UInt32) -> UInt32 {
-        ((~bufSize) + 1) & (elementSize - 1)
+        ((~bufSize) &+ 1) & (elementSize - 1)
     }
     
     /// Prealigns the buffer before writting a new object into the buffer
@@ -476,11 +479,16 @@ extension FlatBufferBuilder {
         _bb.push(value: element, len: MemoryLayout<T>.size)
         return _bb.size
     }
+}
+
+extension FlatBufferBuilder: CustomDebugStringConvertible {
     
-    #if DEBUG
-    /// Used to debug the buffer and the implementation
-    public func debug(str: String = "normal memory: ") {
-        _bb.debugMemory(str: str)
+    public var debugDescription: String {
+        """
+        buffer debug:
+        \(_bb)
+        builder debug:
+        { finished: \(finished), serializeDefaults: \(serializeDefaults), isNested: \(isNested) }
+        """
     }
-    #endif
 }

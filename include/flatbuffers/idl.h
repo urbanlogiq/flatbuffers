@@ -545,6 +545,7 @@ struct IDLOptions {
   bool keep_include_path;
   bool binary_schema_comments;
   bool binary_schema_builtins;
+  bool binary_schema_gen_embed;
   bool skip_flatbuffers_import;
   std::string go_import;
   std::string go_namespace;
@@ -555,6 +556,7 @@ struct IDLOptions {
   std::string root_type;
   bool force_defaults;
   bool java_primitive_has_method;
+  bool cs_gen_json_serializer;
   std::vector<std::string> cpp_includes;
   std::string cpp_std;
   std::string proto_namespace_suffix;
@@ -591,12 +593,12 @@ struct IDLOptions {
   // for code generation.
   unsigned long lang_to_generate;
 
-  // If set (default behavior), empty string fields will be set to nullptr to make
-  // the flatbuffer more compact.
+  // If set (default behavior), empty string fields will be set to nullptr to
+  // make the flatbuffer more compact.
   bool set_empty_strings_to_null;
 
-  // If set (default behavior), empty vector fields will be set to nullptr to make
-  // the flatbuffer more compact.
+  // If set (default behavior), empty vector fields will be set to nullptr to
+  // make the flatbuffer more compact.
   bool set_empty_vectors_to_null;
 
   IDLOptions()
@@ -632,6 +634,7 @@ struct IDLOptions {
         keep_include_path(false),
         binary_schema_comments(false),
         binary_schema_builtins(false),
+        binary_schema_gen_embed(false),
         skip_flatbuffers_import(false),
         reexport_ts_modules(true),
         js_ts_short_names(false),
@@ -639,6 +642,7 @@ struct IDLOptions {
         size_prefixed(false),
         force_defaults(false),
         java_primitive_has_method(false),
+        cs_gen_json_serializer(false),
         lang(IDLOptions::kJava),
         mini_reflect(IDLOptions::kNone),
         lang_to_generate(0),
@@ -1117,7 +1121,12 @@ bool GenerateJavaGRPC(const Parser &parser, const std::string &path,
 
 // Generate GRPC Python interfaces.
 // See idl_gen_grpc.cpp.
-bool GeneratePythonGRPC(const Parser &parser,
+bool GeneratePythonGRPC(const Parser &parser, const std::string &path,
+                        const std::string &file_name);
+
+// Generate GRPC Swift interfaces.
+// See idl_gen_grpc.cpp.
+extern bool GenerateSwiftGRPC(const Parser &parser,
                     const std::string &path,
                     const std::string &file_name);
 

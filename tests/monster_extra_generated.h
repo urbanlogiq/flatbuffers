@@ -262,9 +262,9 @@ inline flatbuffers::Offset<MonsterExtra> CreateMonsterExtraDirect(
 flatbuffers::Offset<MonsterExtra> CreateMonsterExtra(flatbuffers::FlatBufferBuilder &_fbb, const MonsterExtraT *_o, const flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 inline MonsterExtraT *MonsterExtra::UnPack(const flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = new MonsterExtraT();
-  UnPackTo(_o, _resolver);
-  return _o;
+  flatbuffers::unique_ptr<MyGame::MonsterExtraT> _o = flatbuffers::unique_ptr<MyGame::MonsterExtraT>(new MonsterExtraT());
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
 }
 
 inline void MonsterExtra::UnPackTo(MonsterExtraT *_o, const flatbuffers::resolver_function_t *_resolver) const {
@@ -325,7 +325,8 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_FLOAT, 0, -1 },
     { flatbuffers::ET_DOUBLE, 1, -1 },
-    { flatbuffers::ET_FLOAT, 1, -1 }
+    { flatbuffers::ET_FLOAT, 1, -1 },
+    { flatbuffers::ET_INT, 0, -1 }
   };
   static const char * const names[] = {
     "d0",
@@ -337,10 +338,11 @@ inline const flatbuffers::TypeTable *MonsterExtraTypeTable() {
     "f2",
     "f3",
     "dvec",
-    "fvec"
+    "fvec",
+    "deprec"
   };
   static const flatbuffers::TypeTable tt = {
-    flatbuffers::ST_TABLE, 10, type_codes, nullptr, nullptr, names
+    flatbuffers::ST_TABLE, 11, type_codes, nullptr, nullptr, names
   };
   return &tt;
 }
