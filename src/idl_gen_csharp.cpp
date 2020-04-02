@@ -41,7 +41,7 @@ class CSharpGenerator : public BaseGenerator {
  public:
   CSharpGenerator(const Parser &parser, const std::string &path,
                   const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "cs"),
         cur_name_space_(nullptr) {}
 
   CSharpGenerator &operator=(const CSharpGenerator &);
@@ -544,7 +544,7 @@ class CSharpGenerator : public BaseGenerator {
       // Force compile time error if not using the same version runtime.
       code += "  public static void ValidateVersion() {";
       code += " FlatBufferConstants.";
-      code += "FLATBUFFERS_1_11_1(); ";
+      code += "FLATBUFFERS_1_12_0(); ";
       code += "}\n";
 
       // Generate a special accessor for the table that when used as the root
@@ -947,7 +947,8 @@ class CSharpGenerator : public BaseGenerator {
       }
       // JVM specifications restrict default constructor params to be < 255.
       // Longs and doubles take up 2 units, so we set the limit to be < 127.
-      if (has_no_struct_fields && num_fields && num_fields < 127) {
+      if ((has_no_struct_fields || opts.generate_object_based_api) &&
+          num_fields && num_fields < 127) {
         struct_has_create = true;
         // Generate a table constructor of the form:
         // public static int createName(FlatBufferBuilder builder, args...)
@@ -959,13 +960,22 @@ class CSharpGenerator : public BaseGenerator {
           auto &field = **it;
           if (field.deprecated) continue;
           code += ",\n      ";
-          code += GenTypeBasic(field.value.type);
-          code += " ";
-          code += field.name;
-          if (!IsScalar(field.value.type.base_type)) code += "Offset";
+          if (IsStruct(field.value.type) && opts.generate_object_based_api) {
+            code += WrapInNameSpace(
+                field.value.type.struct_def->defined_namespace,
+                GenTypeName_ObjectAPI(field.value.type.struct_def->name, opts));
+            code += " ";
+            code += field.name;
+            code += " = null";
+          } else {
+            code += GenTypeBasic(field.value.type);
+            code += " ";
+            code += field.name;
+            if (!IsScalar(field.value.type.base_type)) code += "Offset";
 
-          code += " = ";
-          code += GenDefaultValueBasic(field);
+            code += " = ";
+            code += GenDefaultValueBasic(field);
+          }
         }
         code += ") {\n    builder.";
         code += "StartTable(";
@@ -980,8 +990,16 @@ class CSharpGenerator : public BaseGenerator {
                  size == SizeOf(field.value.type.base_type))) {
               code += "    " + struct_def.name + ".";
               code += "Add";
-              code += MakeCamel(field.name) + "(builder, " + field.name;
-              if (!IsScalar(field.value.type.base_type)) code += "Offset";
+              code += MakeCamel(field.name) + "(builder, ";
+              if (IsStruct(field.value.type) &&
+                  opts.generate_object_based_api) {
+                code += GenTypePointer(field.value.type) + ".Pack(builder, " +
+                        field.name + ")";
+              } else {
+                code += field.name;
+                if (!IsScalar(field.value.type.base_type)) code += "Offset";
+              }
+
               code += ");\n";
             }
           }
@@ -1643,8 +1661,11 @@ class CSharpGenerator : public BaseGenerator {
             } else {
               code += ",\n";
               if (field.value.type.struct_def->fixed) {
-                code += "      " + GenTypeGet(field.value.type) +
-                        ".Pack(builder, _o." + camel_name + ")";
+                if (opts.generate_object_based_api)
+                  code += "      _o." + camel_name;
+                else
+                  code += "      " + GenTypeGet(field.value.type) +
+                          ".Pack(builder, _o." + camel_name + ")";
               } else {
                 code += "      _" + field.name;
               }
@@ -1988,6 +2009,19 @@ class CSharpGenerator : public BaseGenerator {
       code +=
           "    return Newtonsoft.Json.JsonConvert.SerializeObject(this, "
           "Newtonsoft.Json.Formatting.Indented);\n";
+      code += "  }\n";
+    }
+    if (parser_.root_struct_def_ == &struct_def) {
+      code += "  public static " + class_name +
+              " DeserializeFromBinary(byte[] fbBuffer) {\n";
+      code += "    return " + struct_def.name + ".GetRootAs" + struct_def.name +
+              "(new ByteBuffer(fbBuffer)).UnPack();\n";
+      code += "  }\n";
+      code += "  public byte[] SerializeToBinary() {\n";
+      code += "    var fbb = new FlatBufferBuilder(0x10000);\n";
+      code +=
+          "    fbb.Finish(" + struct_def.name + ".Pack(fbb, this).Value);\n";
+      code += "    return fbb.DataBuffer.ToSizedArray();\n";
       code += "  }\n";
     }
     code += "}\n\n";

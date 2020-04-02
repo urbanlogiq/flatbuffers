@@ -49,7 +49,7 @@ class SwiftGenerator : public BaseGenerator {
  public:
   SwiftGenerator(const Parser &parser, const std::string &path,
                  const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "."),
+      : BaseGenerator(parser, path, file_name, "", ".", "swift"),
         cur_name_space_(nullptr) {
     namespace_depth = 0;
     static const char *const keywords[] = {
@@ -181,7 +181,7 @@ class SwiftGenerator : public BaseGenerator {
 
     if (cur_name_space_) SetNameSpace(nullptr);
 
-    const auto filename = GeneratedFileName(path_, file_name_);
+    const auto filename = GeneratedFileName(path_, file_name_, parser_.opts);
     const auto final_code = code_.ToString();
     return SaveFile(filename.c_str(), final_code, false);
   }
@@ -271,7 +271,7 @@ class SwiftGenerator : public BaseGenerator {
       if (parser_.file_identifier_.length()) {
         code_.SetValue("FILENAME", parser_.file_identifier_);
         code_ +=
-            "\tpublic static func finish(_ fbb: FlatBufferBuilder, end: "
+            "\tpublic static func finish(_ fbb: inout FlatBufferBuilder, end: "
             "Offset<UOffset>, prefix: Bool = false) { fbb.finish(offset: end, "
             "fileId: "
             "\"{{FILENAME}}\", addPrefix: prefix) }";
@@ -316,7 +316,7 @@ class SwiftGenerator : public BaseGenerator {
 
     code_.SetValue("NUMBEROFFIELDS", NumToString(struct_def.fields.vec.size()));
     code_ +=
-        "\tpublic static func start{{STRUCTNAME}}(_ fbb: FlatBufferBuilder) -> "
+        "\tpublic static func start{{STRUCTNAME}}(_ fbb: inout FlatBufferBuilder) -> "
         "UOffset { fbb.startTable(with: {{NUMBEROFFIELDS}}) }";
 
     for (auto it = struct_def.fields.vec.begin();
@@ -332,7 +332,7 @@ class SwiftGenerator : public BaseGenerator {
           static_cast<int>(it - struct_def.fields.vec.begin()));
     }
     code_ +=
-        "\tpublic static func end{{STRUCTNAME}}(_ fbb: FlatBufferBuilder, "
+        "\tpublic static func end{{STRUCTNAME}}(_ fbb: inout FlatBufferBuilder, "
         "start: "
         "UOffset) -> Offset<UOffset> { let end = Offset<UOffset>(offset: "
         "fbb.endTable(at: start))\\";
@@ -346,16 +346,16 @@ class SwiftGenerator : public BaseGenerator {
     code_ += "; return end }";
 
     code_ +=
-        "\tpublic static func create{{STRUCTNAME}}(_ fbb: FlatBufferBuilder\\";
+        "\tpublic static func create{{STRUCTNAME}}(_ fbb: inout FlatBufferBuilder\\";
     if (should_generate_create)
       code_ += ",\n" +
                create_func_header.substr(0, create_func_header.size() - 2) +
                "\\";
     code_ += ") -> Offset<UOffset> {";
-    code_ += "\t\tlet __start = {{STRUCTNAME}}.start{{STRUCTNAME}}(fbb)";
+    code_ += "\t\tlet __start = {{STRUCTNAME}}.start{{STRUCTNAME}}(&fbb)";
     if (should_generate_create)
       code_ += create_func_body.substr(0, create_func_body.size() - 1);
-    code_ += "\t\treturn {{STRUCTNAME}}.end{{STRUCTNAME}}(fbb, start: __start)";
+    code_ += "\t\treturn {{STRUCTNAME}}.end{{STRUCTNAME}}(&fbb, start: __start)";
     code_ += "\t}";
 
     std::string spacing = "\t\t";
@@ -367,7 +367,7 @@ class SwiftGenerator : public BaseGenerator {
       code_ +=
           "\tpublic static func "
           "sortVectorOf{{VALUENAME}}(offsets:[Offset<UOffset>], "
-          "_ fbb: FlatBufferBuilder) -> Offset<UOffset> {";
+          "_ fbb: inout FlatBufferBuilder) -> Offset<UOffset> {";
       code_ += spacing + "var off = offsets";
       code_ +=
           spacing +
@@ -382,7 +382,7 @@ class SwiftGenerator : public BaseGenerator {
 
   void GenTableWriterFields(const FieldDef &field, std::string *create_body,
                             std::string *create_header, const int position) {
-    std::string builder_string = ", _ fbb: FlatBufferBuilder) { fbb.add(";
+    std::string builder_string = ", _ fbb: inout FlatBufferBuilder) { fbb.add(";
     auto &create_func_body = *create_body;
     auto &create_func_header = *create_header;
     auto name = Name(field);
@@ -399,7 +399,7 @@ class SwiftGenerator : public BaseGenerator {
     std::string body = "add" + check_if_vector + name + ": ";
     code_ += "\tpublic static func " + body + "\\";
 
-    create_func_body += "\t\t{{STRUCTNAME}}." + body + name + ", fbb)\n";
+    create_func_body += "\t\t{{STRUCTNAME}}." + body + name + ", &fbb)\n";
 
     if (IsScalar(field.value.type.base_type) &&
         !IsBool(field.value.type.base_type)) {
@@ -790,7 +790,7 @@ class SwiftGenerator : public BaseGenerator {
   }
 
   std::string ValidateFunc() {
-    return "\tstatic func validateVersion() { FlatBuffersVersion_1_11_1() }";
+    return "\tstatic func validateVersion() { FlatBuffersVersion_1_12_0() }";
   }
 
   std::string GenType(const Type &type) const {
@@ -843,10 +843,6 @@ class SwiftGenerator : public BaseGenerator {
     return EscapeKeyword(MakeCamel(def.name, false));
   }
 
-  static std::string GeneratedFileName(const std::string &path,
-                                       const std::string &file_name) {
-    return path + file_name + "_generated.swift";
-  }
   // MARK: - Copied from the cpp implementation, needs revisiting
   void SetNameSpace(const Namespace *ns) {
     if (cur_name_space_ == ns) { return; }
