@@ -26,11 +26,11 @@ public protocol GreeterService {
 }
 
 public final class GreeterServiceClient: GRPCClient, GreeterService {
-	public let connection: ClientConnection
+	public let channel: GRPCChannel
 	public var defaultCallOptions: CallOptions
 
-	public init(connection: ClientConnection, defaultCallOptions: CallOptions = CallOptions()) {
-		self.connection = connection
+	public init(channel: GRPCChannel, defaultCallOptions: CallOptions = CallOptions()) {
+		self.channel = channel
 		self.defaultCallOptions = defaultCallOptions
 	}
 
@@ -53,13 +53,13 @@ public extension GreeterProvider {
 	func handleMethod(_ methodName: String, callHandlerContext: CallHandlerContext) -> GRPCCallHandler? {
 		switch methodName {
 		case "SayHello":
-		return UnaryCallHandler(callHandlerContext: callHandlerContext) { context in
+		return CallHandlerFactory.makeUnary(callHandlerContext: callHandlerContext) { context in
 			return { request in
 				self.SayHello(request, context: context)
 			}
 		}
 		case "SayManyHellos":
-		return ServerStreamingCallHandler(callHandlerContext: callHandlerContext) { context in
+		return CallHandlerFactory.makeServerStreaming(callHandlerContext: callHandlerContext) { context in
 			return { request in
 				self.SayManyHellos(request: request, context: context)
 			}

@@ -6,8 +6,6 @@ library my_game.example;
 import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
-import 'include_test1_my_game.example_generated.dart';
-import 'include_test2_my_game.example_generated.dart';
 import './monster_test_my_game_generated.dart' as my_game;
 import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 
@@ -34,7 +32,7 @@ class Color {
 
   ///  \brief color Blue (1u << 3)
   static const Color Blue = const Color._(8);
-  static get values => {1: Red,2: Green,8: Blue,};
+  static const values = {1: Red,2: Green,8: Blue,};
 
   static const fb.Reader<Color> reader = const _ColorReader();
 
@@ -75,7 +73,7 @@ class Race {
   static const Race Human = const Race._(0);
   static const Race Dwarf = const Race._(1);
   static const Race Elf = const Race._(2);
-  static get values => {-1: None,0: Human,1: Dwarf,2: Elf,};
+  static const values = {-1: None,0: Human,1: Dwarf,2: Elf,};
 
   static const fb.Reader<Race> reader = const _RaceReader();
 
@@ -116,7 +114,7 @@ class AnyTypeId {
   static const AnyTypeId Monster = const AnyTypeId._(1);
   static const AnyTypeId TestSimpleTableWithEnum = const AnyTypeId._(2);
   static const AnyTypeId MyGame_Example2_Monster = const AnyTypeId._(3);
-  static get values => {0: NONE,1: Monster,2: TestSimpleTableWithEnum,3: MyGame_Example2_Monster,};
+  static const values = {0: NONE,1: Monster,2: TestSimpleTableWithEnum,3: MyGame_Example2_Monster,};
 
   static const fb.Reader<AnyTypeId> reader = const _AnyTypeIdReader();
 
@@ -157,7 +155,7 @@ class AnyUniqueAliasesTypeId {
   static const AnyUniqueAliasesTypeId M = const AnyUniqueAliasesTypeId._(1);
   static const AnyUniqueAliasesTypeId TS = const AnyUniqueAliasesTypeId._(2);
   static const AnyUniqueAliasesTypeId M2 = const AnyUniqueAliasesTypeId._(3);
-  static get values => {0: NONE,1: M,2: TS,3: M2,};
+  static const values = {0: NONE,1: M,2: TS,3: M2,};
 
   static const fb.Reader<AnyUniqueAliasesTypeId> reader = const _AnyUniqueAliasesTypeIdReader();
 
@@ -198,7 +196,7 @@ class AnyAmbiguousAliasesTypeId {
   static const AnyAmbiguousAliasesTypeId M1 = const AnyAmbiguousAliasesTypeId._(1);
   static const AnyAmbiguousAliasesTypeId M2 = const AnyAmbiguousAliasesTypeId._(2);
   static const AnyAmbiguousAliasesTypeId M3 = const AnyAmbiguousAliasesTypeId._(3);
-  static get values => {0: NONE,1: M1,2: M2,3: M3,};
+  static const values = {0: NONE,1: M1,2: M2,3: M3,};
 
   static const fb.Reader<AnyAmbiguousAliasesTypeId> reader = const _AnyAmbiguousAliasesTypeIdReader();
 
@@ -719,7 +717,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
-///  an example documentation comment: monster object
+///  an example documentation comment: "monster object"
 class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
@@ -786,18 +784,18 @@ class Monster {
   AnyUniqueAliasesTypeId get anyUniqueType => new AnyUniqueAliasesTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 90, 0));
   dynamic get anyUnique {
     switch (anyUniqueType?.value) {
-      case 1: return M.reader.vTableGet(_bc, _bcOffset, 92, null);
-      case 2: return TS.reader.vTableGet(_bc, _bcOffset, 92, null);
-      case 3: return M2.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 1: return Monster.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 2: return TestSimpleTableWithEnum.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 3: return my_game_example2.Monster.reader.vTableGet(_bc, _bcOffset, 92, null);
       default: return null;
     }
   }
   AnyAmbiguousAliasesTypeId get anyAmbiguousType => new AnyAmbiguousAliasesTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 94, 0));
   dynamic get anyAmbiguous {
     switch (anyAmbiguousType?.value) {
-      case 1: return M1.reader.vTableGet(_bc, _bcOffset, 96, null);
-      case 2: return M2.reader.vTableGet(_bc, _bcOffset, 96, null);
-      case 3: return M3.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 1: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 2: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 3: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
       default: return null;
     }
   }

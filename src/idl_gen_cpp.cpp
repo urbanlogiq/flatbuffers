@@ -200,10 +200,12 @@ class CppGenerator : public BaseGenerator {
 
   void GenIncludeDependencies() {
     int num_includes = 0;
-    for (auto it = parser_.native_included_files_.begin();
-         it != parser_.native_included_files_.end(); ++it) {
-      code_ += "#include \"" + *it + "\"";
-      num_includes++;
+    if (opts_.generate_object_based_api) {
+      for (auto it = parser_.native_included_files_.begin();
+           it != parser_.native_included_files_.end(); ++it) {
+        code_ += "#include \"" + *it + "\"";
+        num_includes++;
+      }
     }
     for (auto it = parser_.included_files_.begin();
          it != parser_.included_files_.end(); ++it) {
@@ -1650,15 +1652,36 @@ class CppGenerator : public BaseGenerator {
                             "> "
                       : GenTypeNativePtr(cpp_type->constant, &field, false))
                : type + " ");
+      // Generate default member initializers for >= C++11.
+      std::string field_di = "";
+      if (opts_.g_cpp_std >= cpp::CPP_STD_11) {
+        field_di = "{}";
+        auto native_default = field.attributes.Lookup("native_default");
+        // Scalar types get parsed defaults, raw pointers get nullptrs.
+        if (IsScalar(field.value.type.base_type)) {
+          field_di =
+              " = " + (native_default ? std::string(native_default->constant)
+                                      : GetDefaultScalarValue(field, true));
+        } else if (field.value.type.base_type == BASE_TYPE_STRUCT) {
+          if (IsStruct(field.value.type) && native_default) {
+            field_di = " = " + native_default->constant;
+          }
+        }
+      }
       code_.SetValue("FIELD_TYPE", full_type);
       code_.SetValue("FIELD_NAME", Name(field));
-      code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}};";
+      code_.SetValue("FIELD_DI", field_di);
+      code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}{{FIELD_DI}};";
     }
   }
 
   // Generate the default constructor for this struct. Properly initialize all
   // scalar members with default values.
   void GenDefaultConstructor(const StructDef &struct_def) {
+    code_.SetValue("NATIVE_NAME",
+                   NativeName(Name(struct_def), &struct_def, opts_));
+    // In >= C++11, default member initializers are generated.
+    if (opts_.g_cpp_std >= cpp::CPP_STD_11) { return; }
     std::string initializer_list;
     for (auto it = struct_def.fields.vec.begin();
          it != struct_def.fields.vec.end(); ++it) {
@@ -1696,8 +1719,6 @@ class CppGenerator : public BaseGenerator {
       initializer_list = "\n      : " + initializer_list;
     }
 
-    code_.SetValue("NATIVE_NAME",
-                   NativeName(Name(struct_def), &struct_def, opts_));
     code_.SetValue("INIT_LIST", initializer_list);
 
     code_ += "  {{NATIVE_NAME}}(){{INIT_LIST}} {";
@@ -2712,24 +2733,28 @@ class CppGenerator : public BaseGenerator {
     code_.SetValue("STRUCT_NAME", Name(struct_def));
     code_.SetValue("NATIVE_NAME",
                    NativeName(Name(struct_def), &struct_def, opts_));
-    auto native_name =
-        NativeName(WrapInNameSpace(struct_def), &struct_def, parser_.opts);
-    code_.SetValue("POINTER_TYPE",
-                   GenTypeNativePtr(native_name, nullptr, false));
 
     if (opts_.generate_object_based_api) {
       // Generate the X::UnPack() method.
       code_ +=
           "inline " + TableUnPackSignature(struct_def, false, opts_) + " {";
 
-      code_ +=
-          "  {{POINTER_TYPE}} _o = {{POINTER_TYPE}}(new {{NATIVE_NAME}}());";
+      if(opts_.g_cpp_std == cpp::CPP_STD_X0) {
+        auto native_name =
+            NativeName(WrapInNameSpace(struct_def), &struct_def, parser_.opts);
+        code_.SetValue("POINTER_TYPE",
+                       GenTypeNativePtr(native_name, nullptr, false));
+        code_ +=
+            "  {{POINTER_TYPE}} _o = {{POINTER_TYPE}}(new {{NATIVE_NAME}}());";
+      } else if(opts_.g_cpp_std == cpp::CPP_STD_11) {
+        code_ += "  auto _o = std::unique_ptr<{{NATIVE_NAME}}>(new {{NATIVE_NAME}}());";
+      } else {
+        code_ += "  auto _o = std::make_unique<{{NATIVE_NAME}}>();";
+      }
       code_ += "  UnPackTo(_o.get(), _resolver);";
       code_ += "  return _o.release();";
-
       code_ += "}";
       code_ += "";
-
       code_ +=
           "inline " + TableUnPackToSignature(struct_def, false, opts_) + " {";
       code_ += "  (void)_o;";
@@ -2849,7 +2874,117 @@ class CppGenerator : public BaseGenerator {
 
   static void PaddingNoop(int bits, std::string *code_ptr, int *id) {
     (void)bits;
-    *code_ptr += "    (void)padding" + NumToString((*id)++) + "__;";
+    *code_ptr += "    (void)padding" + NumToString((*id)++) + "__;\n";
+  }
+
+  void GenStructDefaultConstructor(const StructDef &struct_def) {
+    std::string init_list;
+    std::string body;
+    bool first_in_init_list = true;
+    int padding_initializer_id = 0;
+    int padding_body_id = 0;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end();
+         ++it) {
+      const auto field = *it;
+      const auto field_name = field->name + "_";
+
+      if (first_in_init_list) {
+        first_in_init_list = false;
+      } else {
+        init_list += ",";
+        init_list += "\n        ";
+      }
+
+      init_list += field_name;
+      if (IsStruct(field->value.type) || IsArray(field->value.type)) {
+        // this is either default initialization of struct
+        // or
+        // implicit initialization of array
+        // for each object in array it:
+        // * sets it as zeros for POD types (integral, floating point, etc)
+        // * calls default constructor for classes/structs
+        init_list += "()";
+      } else {
+        init_list += "(0)";
+      }
+      if (field->padding) {
+        GenPadding(*field, &init_list, &padding_initializer_id,
+                   PaddingInitializer);
+        GenPadding(*field, &body, &padding_body_id, PaddingNoop);
+      }
+    }
+
+    if (init_list.empty()) {
+      code_ += "  {{STRUCT_NAME}}()";
+      code_ += "  {}";
+    } else {
+      code_.SetValue("INIT_LIST", init_list);
+      code_.SetValue("DEFAULT_CONSTRUCTOR_BODY", body);
+      code_ += "  {{STRUCT_NAME}}()";
+      code_ += "      : {{INIT_LIST}} {";
+      code_ += "{{DEFAULT_CONSTRUCTOR_BODY}}  }";
+    }
+  }
+
+  void GenStructConstructor(const StructDef &struct_def) {
+    std::string arg_list;
+    std::string init_list;
+    int padding_id = 0;
+    bool first_arg = true;
+    bool first_init = true;
+    for (auto it = struct_def.fields.vec.begin();
+         it != struct_def.fields.vec.end(); ++it) {
+      const auto &field = **it;
+      const auto &field_type = field.value.type;
+      const auto member_name = Name(field) + "_";
+      const auto arg_name = "_" + Name(field);
+      const auto arg_type = GenTypeGet(field_type, " ", "const ", " &", true);
+
+      if (!IsArray(field_type)) {
+        if (first_arg) {
+          first_arg = false;
+        } else {
+          arg_list += ", ";
+        }
+        arg_list += arg_type;
+        arg_list += arg_name;
+      }
+      if (first_init) {
+        first_init = false;
+      } else {
+        init_list += ",";
+        init_list += "\n        ";
+      }
+      init_list += member_name;
+      if (IsScalar(field_type.base_type)) {
+        auto type = GenUnderlyingCast(field, false, arg_name);
+        init_list += "(flatbuffers::EndianScalar(" + type + "))";
+      } else if (IsArray(field_type)) {
+        // implicit initialization of array
+        // for each object in array it:
+        // * sets it as zeros for POD types (integral, floating point, etc)
+        // * calls default constructor for classes/structs
+        init_list += "()";
+      } else {
+        init_list += "(" + arg_name + ")";
+      }
+      if (field.padding) {
+        GenPadding(field, &init_list, &padding_id, PaddingInitializer);
+      }
+    }
+
+    if (!arg_list.empty()) {
+      code_.SetValue("ARG_LIST", arg_list);
+      code_.SetValue("INIT_LIST", init_list);
+      if (!init_list.empty()) {
+        code_ += "  {{STRUCT_NAME}}({{ARG_LIST}})";
+        code_ += "      : {{INIT_LIST}} {";
+      } else {
+        code_ += "  {{STRUCT_NAME}}({{ARG_LIST}}) {";
+      }
+      code_ += "  }";
+    }
   }
 
   // Generate an accessor struct with constructor for a flatbuffers struct.
@@ -2903,73 +3038,11 @@ class CppGenerator : public BaseGenerator {
     GenFullyQualifiedNameGetter(struct_def, Name(struct_def));
 
     // Generate a default constructor.
-    code_ += "  {{STRUCT_NAME}}() {";
-    code_ +=
-        "    memset(static_cast<void *>(this), 0, sizeof({{STRUCT_NAME}}));";
-    code_ += "  }";
+    GenStructDefaultConstructor(struct_def);
 
     // Generate a constructor that takes all fields as arguments,
     // excluding arrays
-    std::string arg_list;
-    std::string init_list;
-    padding_id = 0;
-    auto first = struct_def.fields.vec.begin();
-    for (auto it = struct_def.fields.vec.begin();
-         it != struct_def.fields.vec.end(); ++it) {
-      const auto &field = **it;
-      if (IsArray(field.value.type)) {
-        first++;
-        continue;
-      }
-      const auto member_name = Name(field) + "_";
-      const auto arg_name = "_" + Name(field);
-      const auto arg_type =
-          GenTypeGet(field.value.type, " ", "const ", " &", true);
-
-      if (it != first) { arg_list += ", "; }
-      arg_list += arg_type;
-      arg_list += arg_name;
-      if (!IsArray(field.value.type)) {
-        if (it != first && init_list != "") { init_list += ",\n        "; }
-        init_list += member_name;
-        if (IsScalar(field.value.type.base_type)) {
-          auto type = GenUnderlyingCast(field, false, arg_name);
-          init_list += "(flatbuffers::EndianScalar(" + type + "))";
-        } else {
-          init_list += "(" + arg_name + ")";
-        }
-      }
-      if (field.padding) {
-        GenPadding(field, &init_list, &padding_id, PaddingInitializer);
-      }
-    }
-
-    if (!arg_list.empty()) {
-      code_.SetValue("ARG_LIST", arg_list);
-      code_.SetValue("INIT_LIST", init_list);
-      if (!init_list.empty()) {
-        code_ += "  {{STRUCT_NAME}}({{ARG_LIST}})";
-        code_ += "      : {{INIT_LIST}} {";
-      } else {
-        code_ += "  {{STRUCT_NAME}}({{ARG_LIST}}) {";
-      }
-      padding_id = 0;
-      for (auto it = struct_def.fields.vec.begin();
-           it != struct_def.fields.vec.end(); ++it) {
-        const auto &field = **it;
-        if (IsArray(field.value.type)) {
-          const auto &member = Name(field) + "_";
-          code_ +=
-              "    std::memset(" + member + ", 0, sizeof(" + member + "));";
-        }
-        if (field.padding) {
-          std::string padding;
-          GenPadding(field, &padding, &padding_id, PaddingNoop);
-          code_ += padding;
-        }
-      }
-      code_ += "  }";
-    }
+    GenStructConstructor(struct_def);
 
     // Generate accessor methods of the form:
     // type name() const { return flatbuffers::EndianScalar(name_); }

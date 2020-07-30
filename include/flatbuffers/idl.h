@@ -239,7 +239,7 @@ template<typename T> class SymbolTable {
 struct Namespace {
   Namespace() : from_table(0) {}
 
-  // Given a (potentally unqualified) name, return the "fully qualified" name
+  // Given a (potentially unqualified) name, return the "fully qualified" name
   // which has a full namespaced descriptor.
   // With max_components you can request less than the number of components
   // the current namespace has.
@@ -296,6 +296,7 @@ struct FieldDef : public Definition {
         shared(false),
         native_inline(false),
         flexbuffer(false),
+        nullable(false),
         nested_flatbuffer(NULL),
         padding(0) {}
 
@@ -314,6 +315,8 @@ struct FieldDef : public Definition {
   bool native_inline;  // Field will be defined inline (instead of as a pointer)
                        // for native tables if field is a struct.
   bool flexbuffer;     // This field contains FlexBuffer data.
+  bool nullable;       // If True, this field is Null (as opposed to default
+                       // valued).
   StructDef *nested_flatbuffer;  // This field contains nested FlatBuffer data.
   size_t padding;                // Bytes to always pad after this field.
 };
@@ -410,9 +413,7 @@ struct EnumDef : public Definition {
 
   size_t size() const { return vals.vec.size(); }
 
-  const std::vector<EnumVal *> &Vals() const {
-    return vals.vec;
-  }
+  const std::vector<EnumVal *> &Vals() const { return vals.vec; }
 
   const EnumVal *Lookup(const std::string &enum_name) const {
     return vals.Lookup(enum_name);
@@ -859,7 +860,7 @@ class Parser : public ParserState {
                                      const std::string &name, const Type &type,
                                      FieldDef **dest);
   FLATBUFFERS_CHECKED_ERROR ParseField(StructDef &struct_def);
-  FLATBUFFERS_CHECKED_ERROR ParseString(Value &val);
+  FLATBUFFERS_CHECKED_ERROR ParseString(Value &val, bool use_string_pooling);
   FLATBUFFERS_CHECKED_ERROR ParseComma();
   FLATBUFFERS_CHECKED_ERROR ParseAnyValue(Value &val, FieldDef *field,
                                           size_t parent_fieldn,
@@ -929,6 +930,7 @@ class Parser : public ParserState {
 
   bool SupportsAdvancedUnionFeatures() const;
   bool SupportsAdvancedArrayFeatures() const;
+  bool SupportsNullableScalars() const;
   Namespace *UniqueNamespace(Namespace *ns);
 
   FLATBUFFERS_CHECKED_ERROR RecurseError();
