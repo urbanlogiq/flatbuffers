@@ -159,6 +159,7 @@ std::string FlatCompiler::GetUsageString(const char *program_name) const {
     "  --keep-prefix          Keep original prefix of schema include statement.\n"
     "  --reflect-types        Add minimal type reflection to code generation.\n"
     "  --reflect-names        Add minimal type/name reflection.\n"
+    "  --rust-serialize       Implement serde::Serialize on generated Rust types.\n"
     "  --root-type T          Select or override the default root_type\n"
     "  --require-explicit-ids When parsing schemas, require explicit ids (id: x).\n"
     "  --force-defaults       Emit default values in binary output from JSON\n"
@@ -329,6 +330,8 @@ int FlatCompiler::Compile(int argc, const char **argv) {
         opts.mini_reflect = IDLOptions::kTypes;
       } else if (arg == "--reflect-names") {
         opts.mini_reflect = IDLOptions::kTypesAndNames;
+      } else if (arg == "--rust-serialize") {
+        opts.rust_serialize = true;
       } else if (arg == "--require-explicit-ids") {
         opts.require_explicit_ids = true;
       } else if (arg == "--root-type") {
