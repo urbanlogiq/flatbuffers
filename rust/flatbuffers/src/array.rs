@@ -134,7 +134,7 @@ where
     }
 }
 
-#[cfg(feature(serialize))]
+#[cfg(feature="serialize")]
 impl<'a, T: 'a, const N: usize> serde::ser::Serialize for Array<'a, T, N>
 where
     T: 'a + Follow<'a>,
