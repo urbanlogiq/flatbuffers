@@ -2627,25 +2627,25 @@ class RustGenerator : public BaseGenerator {
       code_ += "  }";
       code_ += "}";
       code_ += "";
-
-      // Generate a constructor that takes all fields as arguments.
-      code_ += "impl<'a> {{STRUCT_NAME}} {";
-      code_ += "  #[allow(clippy::too_many_arguments)]";
-      code_ += "  pub fn new(";
-      ForAllStructFields(struct_def, [&](const FieldDef &unused) {
-        (void)unused;
-        code_ += "    {{FIELD_NAME}}: {{REF}}{{FIELD_TYPE}},";
-      });
-      code_ += "  ) -> Self {";
-      code_ += "    let mut s = Self([0; {{STRUCT_SIZE}}]);";
-      ForAllStructFields(struct_def, [&](const FieldDef &unused) {
-        (void)unused;
-        code_ += "    s.set_{{FIELD_NAME}}({{REF}}{{FIELD_NAME}});";
-      });
-      code_ += "    s";
-      code_ += "  }";
-      code_ += "";
     }
+
+    // Generate a constructor that takes all fields as arguments.
+    code_ += "impl<'a> {{STRUCT_NAME}} {";
+    code_ += "  #[allow(clippy::too_many_arguments)]";
+    code_ += "  pub fn new(";
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void)unused;
+      code_ += "    {{FIELD_NAME}}: {{REF}}{{FIELD_TYPE}},";
+    });
+    code_ += "  ) -> Self {";
+    code_ += "    let mut s = Self([0; {{STRUCT_SIZE}}]);";
+    ForAllStructFields(struct_def, [&](const FieldDef &unused) {
+      (void)unused;
+      code_ += "    s.set_{{FIELD_NAME}}({{REF}}{{FIELD_NAME}});";
+    });
+    code_ += "    s";
+    code_ += "  }";
+    code_ += "";
 
     if (parser_.opts.generate_name_strings) {
       GenFullyQualifiedNameGetter(struct_def, struct_def.name);
