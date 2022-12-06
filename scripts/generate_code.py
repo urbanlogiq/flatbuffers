@@ -224,6 +224,12 @@ flatc(
 )
 
 flatc(
+    RUST_OPTS,
+    schema="apache_arrow.fbs",
+    prefix="apache_arrow",
+)
+
+flatc(
     RUST_SERIALIZE_OPTS,
     schema="monster_test.fbs",
     include="include_test",
