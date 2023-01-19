@@ -466,6 +466,7 @@ class PythonGenerator : public BaseGenerator {
       // Double check qualified name just to be sure it exists.
       nested_root = parser_.LookupStruct(qualified_name);
     }
+
     FLATBUFFERS_ASSERT(nested_root);  // Guaranteed to exist by parser.
     return qualified_name;
   }
@@ -478,7 +479,11 @@ class PythonGenerator : public BaseGenerator {
     if (!nested) { return; }  // There is no nested flatbuffer.
 
     const std::string unqualified_name = nested->constant;
-    const std::string qualified_name = NestedFlatbufferType(unqualified_name);
+    std::string qualified_name = NestedFlatbufferType(unqualified_name);
+
+    if (qualified_name.empty()) {
+      qualified_name = nested->constant;
+    }
 
     auto &code = *code_ptr;
     GenReceiver(struct_def, code_ptr);
@@ -489,7 +494,7 @@ class PythonGenerator : public BaseGenerator {
     code += Indent + Indent + Indent;
     code += "from " + qualified_name + " import " + unqualified_name + "\n";
     code += Indent + Indent + Indent + "return " + unqualified_name;
-    code += ".GetRootAs" + unqualified_name;
+    code += ".GetRootAs";
     code += "(self._tab.Bytes, self._tab.Vector(o))\n";
     code += Indent + Indent + "return 0\n";
     code += "\n";
