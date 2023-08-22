@@ -429,13 +429,10 @@ class PythonGenerator : public BaseGenerator {
   // module.
   std::string GenPackageReference(const Type &type) const {
     if (type.struct_def) {
-      printf("struct_def: %s\n", type.struct_def->name.c_str());
       return namer_.NamespacedType(*type.struct_def);
     } else if (type.enum_def) {
-      printf("enum_def: %s\n", type.enum_def->name.c_str());
       return namer_.NamespacedType(*type.enum_def);
     } else {
-      printf("else: %s\n", GenTypeGet(type).c_str());
       return "." + GenTypeGet(type);
     }
   }
