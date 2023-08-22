@@ -275,7 +275,8 @@ class PythonGenerator : public BaseGenerator {
     code += namer_.Method(field);
 
     const ImportMapEntry import_entry = {
-      GenPackageReference(struct_def.defined_namespace, field.value.type), TypeName(field)
+      GenPackageReference(struct_def.defined_namespace, field.value.type),
+      TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -337,7 +338,8 @@ class PythonGenerator : public BaseGenerator {
     code += namer_.Method(field) + "(self)";
 
     const ImportMapEntry import_entry = {
-      GenPackageReference(struct_def.defined_namespace, field.value.type), TypeName(field)
+      GenPackageReference(struct_def.defined_namespace, field.value.type),
+      TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -401,7 +403,8 @@ class PythonGenerator : public BaseGenerator {
     } else {
       return_ty = TypeName(field);
       import_entry =
-          ImportMapEntry{ GenPackageReference(struct_def.defined_namespace, field.value.type),
+          ImportMapEntry{ GenPackageReference(struct_def.defined_namespace,
+                                              field.value.type),
                           TypeName(field) };
     }
 
@@ -429,7 +432,8 @@ class PythonGenerator : public BaseGenerator {
   // module.
   std::string GenPackageReference(const Namespace *ns, const Type &type) const {
     std::vector<std::string> empty;
-    const std::vector<std::string> &lhs_path = ns == nullptr ? empty : ns->components;
+    const std::vector<std::string> &lhs_path =
+        ns == nullptr ? empty : ns->components;
     std::vector<std::string> &rhs_path = empty;
 
     if (type.struct_def && type.struct_def->defined_namespace) {
@@ -442,17 +446,13 @@ class PythonGenerator : public BaseGenerator {
     size_t common_start = 0;
 
     for (size_t i = 0; i < limit; ++i) {
-      if (lhs_path[i] == rhs_path[i]) {
-        ++common_start;
-      }
+      if (lhs_path[i] == rhs_path[i]) { ++common_start; }
     }
 
     size_t prefix_len = lhs_path.size() - common_start;
 
     std::string ref;
-    for (size_t i = 0; i < prefix_len; ++i) {
-      ref += ".";
-    }
+    for (size_t i = 0; i < prefix_len; ++i) { ref += "."; }
 
     for (size_t i = common_start; i < rhs_path.size(); ++i) {
       ref += "." + rhs_path[i];
@@ -471,7 +471,8 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
     const ImportMapEntry import_entry = {
-      GenPackageReference(struct_def.defined_namespace, field.value.type), TypeName(field)
+      GenPackageReference(struct_def.defined_namespace, field.value.type),
+      TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -1141,7 +1142,8 @@ class PythonGenerator : public BaseGenerator {
         case BASE_TYPE_STRUCT:
           field_type = namer_.ObjectType(*ev.union_type.struct_def);
           if (parser_.opts.include_dependence_headers) {
-            auto package_reference = GenPackageReference(field.defined_namespace, ev.union_type);
+            auto package_reference =
+                GenPackageReference(field.defined_namespace, ev.union_type);
             field_type = package_reference + "." + field_type;
             import_list->insert("import " + package_reference);
           }
@@ -1159,7 +1161,8 @@ class PythonGenerator : public BaseGenerator {
 
     // Gets the import lists for the union.
     if (parser_.opts.include_dependence_headers) {
-      const auto package_reference = GenPackageReference(field.defined_namespace, field.value.type);
+      const auto package_reference =
+          GenPackageReference(field.defined_namespace, field.value.type);
       import_list->insert("import " + package_reference);
     }
   }
@@ -1172,7 +1175,8 @@ class PythonGenerator : public BaseGenerator {
     const Type &type = field.value.type;
     const std::string object_type = namer_.ObjectType(*type.struct_def);
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(field.defined_namespace, type);
+      auto package_reference =
+          GenPackageReference(field.defined_namespace, type);
       output = package_reference + "." + object_type + "]";
       import_list->insert("import " + package_reference);
     } else {
@@ -1193,7 +1197,8 @@ class PythonGenerator : public BaseGenerator {
           namer_.ObjectType(*vector_type.struct_def);
       field_type = object_type + "]";
       if (parser_.opts.include_dependence_headers) {
-        auto package_reference = GenPackageReference(field.defined_namespace, vector_type);
+        auto package_reference =
+            GenPackageReference(field.defined_namespace, vector_type);
         field_type = package_reference + "." + object_type + "]";
         import_list->insert("import " + package_reference);
       }
@@ -1352,7 +1357,8 @@ class PythonGenerator : public BaseGenerator {
     auto field_type = TypeName(field);
 
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(struct_def.defined_namespace, field.value.type);
+      auto package_reference =
+          GenPackageReference(struct_def.defined_namespace, field.value.type);
       field_type = package_reference + "." + TypeName(field);
     }
 
@@ -1407,7 +1413,8 @@ class PythonGenerator : public BaseGenerator {
     auto one_instance = field_type + "_";
     one_instance[0] = CharToLower(one_instance[0]);
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(struct_def.defined_namespace, field.value.type);
+      auto package_reference =
+          GenPackageReference(struct_def.defined_namespace, field.value.type);
       field_type = package_reference + "." + TypeName(field);
     }
     code += GenIndents(4) + "if " + struct_var + "." + field_method +
@@ -1439,7 +1446,8 @@ class PythonGenerator : public BaseGenerator {
     auto one_instance = field_type + "_";
     one_instance[0] = CharToLower(one_instance[0]);
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(struct_def.defined_namespace, field.value.type);
+      auto package_reference =
+          GenPackageReference(struct_def.defined_namespace, field.value.type);
       field_type = package_reference + "." + TypeName(field);
     }
     code += GenIndents(4) + "if " + struct_var + "." + field_method +
@@ -1858,7 +1866,8 @@ class PythonGenerator : public BaseGenerator {
     code +=
         GenIndents(1) + "if unionType == " + union_type + "()." + variant + ":";
     if (parser_.opts.include_dependence_headers) {
-      auto package_reference = GenPackageReference(enum_def.defined_namespace, ev.union_type);
+      auto package_reference =
+          GenPackageReference(enum_def.defined_namespace, ev.union_type);
       code += GenIndents(2) + "import " + package_reference;
       field_type = package_reference + "." + field_type;
     }
