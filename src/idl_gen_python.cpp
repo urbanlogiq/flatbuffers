@@ -400,8 +400,9 @@ class PythonGenerator : public BaseGenerator {
       import_entry = ImportMapEntry{ "flatbuffers.table", "Table" };
     } else {
       return_ty = TypeName(field);
-      import_entry = ImportMapEntry{ "." + GenPackageReference(field.value.type),
-                                     TypeName(field) };
+      import_entry =
+          ImportMapEntry{ "." + GenPackageReference(field.value.type),
+                          TypeName(field) };
     }
 
     code += namer_.Method(field) + "(self)";
