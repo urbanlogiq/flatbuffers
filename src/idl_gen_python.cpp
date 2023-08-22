@@ -275,7 +275,7 @@ class PythonGenerator : public BaseGenerator {
     code += namer_.Method(field);
 
     const ImportMapEntry import_entry = {
-      GenPackageReference(field.value.type), TypeName(field)
+      "." + GenPackageReference(field.value.type), TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -337,7 +337,7 @@ class PythonGenerator : public BaseGenerator {
     code += namer_.Method(field) + "(self)";
 
     const ImportMapEntry import_entry = {
-      GenPackageReference(field.value.type), TypeName(field)
+      "." + GenPackageReference(field.value.type), TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -400,7 +400,7 @@ class PythonGenerator : public BaseGenerator {
       import_entry = ImportMapEntry{ "flatbuffers.table", "Table" };
     } else {
       return_ty = TypeName(field);
-      import_entry = ImportMapEntry{ GenPackageReference(field.value.type),
+      import_entry = ImportMapEntry{ "." + GenPackageReference(field.value.type),
                                      TypeName(field) };
     }
 
@@ -428,10 +428,13 @@ class PythonGenerator : public BaseGenerator {
   // module.
   std::string GenPackageReference(const Type &type) const {
     if (type.struct_def) {
+      printf("struct_def: %s\n", type.struct_def->name.c_str());
       return namer_.NamespacedType(*type.struct_def);
     } else if (type.enum_def) {
+      printf("enum_def: %s\n", type.enum_def->name.c_str());
       return namer_.NamespacedType(*type.enum_def);
     } else {
+      printf("else: %s\n", GenTypeGet(type).c_str());
       return "." + GenTypeGet(type);
     }
   }
@@ -446,7 +449,7 @@ class PythonGenerator : public BaseGenerator {
     GenReceiver(struct_def, code_ptr);
     code += namer_.Method(field);
     const ImportMapEntry import_entry = {
-      GenPackageReference(field.value.type), TypeName(field)
+      "." + GenPackageReference(field.value.type), TypeName(field)
     };
 
     if (parser_.opts.python_typing) {
@@ -570,7 +573,7 @@ class PythonGenerator : public BaseGenerator {
     std::string qualified_name = NestedFlatbufferType(unqualified_name);
     if (qualified_name.empty()) { qualified_name = nested->constant; }
 
-    const ImportMapEntry import_entry = { qualified_name,
+    const ImportMapEntry import_entry = { "." + qualified_name,
                                           unqualified_name };
 
     auto &code = *code_ptr;
