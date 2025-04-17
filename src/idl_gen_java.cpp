@@ -66,6 +66,7 @@ static std::set<std::string> JavaKeywords() {
     "char",     "final",    "interface",  "static",    "void",
     "class",    "finally",  "long",       "strictfp",  "volatile",
     "const",    "float",    "native",     "super",     "while",
+    "notify",
   };
 }
 
