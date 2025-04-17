@@ -932,7 +932,7 @@ class JavaGenerator : public BaseGenerator {
         } else if (element_base_type == BASE_TYPE_UNION) {
           vector_type_name = "UnionVector";
         } else {
-          vector_type_name = type_name + ".Vector";
+          vector_type_name = type_name + "._Vector";
         }
         auto vector_method_start = GenNullableAnnotation(field.value.type) +
                                    "  public " + vector_type_name + " " +
@@ -1302,13 +1302,13 @@ class JavaGenerator : public BaseGenerator {
     if (!struct_def.attributes.Lookup("private")) code += "public ";
     code += "static ";
     code += "final ";
-    code += "class Vector extends ";
+    code += "class _Vector extends ";
     code += "BaseVector {\n";
 
     // Generate the __assign method that sets the field in a pre-existing
     // accessor object. This is to allow object reuse.
     std::string method_indent = "    ";
-    code += method_indent + "public Vector ";
+    code += method_indent + "public _Vector ";
     code += "__assign(int _vector, int _element_size, ByteBuffer _bb) { ";
     code += "__reset(_vector, _element_size, _bb); return this; }\n\n";
 
